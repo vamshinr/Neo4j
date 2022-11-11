@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fit score</title>
+</head>
+<body>
+    <center>
+      <form action = "/fitscores" method = "post">
+          <br><br>
+          <h3>select Job:&nbsp&nbsp&nbsp&nbsp
+<!--          <p><input type = "text" name = "user" /></p>-->
+              <select name="job" id="job">
+                  {% for n in res %}
+                    <option>{{n}}</option>
+                  {% endfor %}
+              </select>
+          </h3>
+            <p><input type = "submit" value = "search candidates" /></p>
+      </form>
+    </center>
+</body>
+</html>

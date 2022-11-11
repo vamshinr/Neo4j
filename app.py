@@ -24,7 +24,10 @@ def index():
 
 @app.route('/recommend')
 def recopage():
-    return render_template('recommend.html')
+    q = "match(p: Person) return p"
+    with driver.session() as session:
+        res = session.run(q).data()
+    return render_template('recommend.html',res=[r['p']['name'] for r in res])
 
 @app.route('/recommendations',methods=['POST'])
 def recommendations():
@@ -36,9 +39,12 @@ def recommendations():
     queries=[]
     for s in skills:
         queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (s:Skill{{name:\"{s}\"}}) merge (p)-[:HAS_SKILL]->(s)")
-    queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (e:Experience{{name:{exp}}}) merge (p)-[:HAS_EXPERIENCE]->(e)")
-    queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (d:Degree{{name:\"{edu}\"}}) merge (p)-[:HAS_DEGREE]->(d)")
-    queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (c:City{{name:\"{city}\"}}) merge (p)-[:LIVESIN_CITY]->(c)")
+    if exp:
+        queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (e:Experience{{name:{exp}}}) merge (p)-[:HAS_EXPERIENCE]->(e)")
+    if edu!="":
+        queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (d:Degree{{name:\"{edu}\"}}) merge (p)-[:HAS_DEGREE]->(d)")
+    if city!="":
+        queries.append(f"merge (p:Person{{name:\"{name}\"}}) merge (c:City{{name:\"{city}\"}}) merge (p)-[:LIVESIN_CITY]->(c)")
     with driver.session() as session:
         for qu in queries:
             session.run(qu).data()
@@ -88,6 +94,29 @@ def search():
         res = session.run(q).data()
     return render_template('jobs.html',res=[r['p']['name'] for r in res])
 
+@app.route('/fitscore',methods=['GET','POST'])
+def fitscore():
+    q = "match(j:Job) return j"
+    with driver.session() as session:
+        res = session.run(q).data()
+    return render_template('jobfit.html',res=[r['j']['name'] for r in res])
 
+@app.route('/fitscores',methods=['GET','POST'])
+def fitscores():
+    if request.method == "POST":
+        job = str(request.form['job'])
+        query = f"MATCH (has_s:Skill)<-[has:HAS_SKILL]-(p:Person)-[:LIVESIN_CITY]->(c:City)<-[:IN_CITY]-(j:Job{{name:\'{job}\'}})-[req:REQ_SKILL]->(req_s:Skill)"\
+                " optional MATCH (p)-[:HAS_SKILL]->(common:Skill)<-[:REQ_SKILL]-(j)"\
+                " with p.name as name, c.name as cityname, count(DISTINCT has_s.name) as counthasskill, count(DISTINCT req_s.name) as countreqskill, collect(DISTINCT has_s.name) as hasskills, collect(DISTINCT req_s.name) as reqskills, collect(DISTINCT common.name) as matching_skills, count(DISTINCT common.name) as match_count"\
+                " return name,cityname,hasskills,reqskills,matching_skills,match_count,[x in reqskills WHERE not(x in hasskills)] as missing"\
+                " order by match_count desc"
+        with driver.session() as session:
+            res = session.run(query).data()
+        for r in res:
+            r.pop("hasskills")
+            r.pop("matching_skills")
+            r.pop("match_count")
+        print(res)
+        return render_template('table.html', res=res, name=job)
 if __name__ == '__main__':
     app.run(host="0.0.0.0",port=5001,debug=True)
