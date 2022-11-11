@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>jobs</title>
+    <style>
+      table,
+      thead,
+      tbody,
+      tr,
+      td,
+      th {
+        padding: 10px;
+        border: 2px solid black;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      th{
+      background-color: #e5e5e5;
+      }
+    </style>
+</head>
+<body>
+    <center>
+        <h2>
+            RECOMMENDED JOBS FOR {{name}} :
+        </h2>
+        <br>
+        <br>
+        <table>
+          <thead>
+          <th>JOB NAME</th>
+          <th>CITY NAME</th>
+          <th>REQUIRED SKILLS</th>
+          <th>MISSING SKILLS</th>
+          </thead>
+          <tbody>
+          {% for data in res %}
+            <tr>
+              {% for k,v in data.items() %}
+              <td>{{ v }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <br>
+        <br>
+        <form action = "/search">
+            <p><input type = "submit" value = "go home" /></p>
+      </form>
+    </center>
+</body>
+</html>
