@@ -2,7 +2,15 @@
    <body>
     <center>
       <form action = "/search" method = "post">
-            select user: <p><input type = "text" name = "user" /></p>
+          <br><br>
+          <h3>select user:&nbsp&nbsp&nbsp&nbsp
+<!--          <p><input type = "text" name = "user" /></p>-->
+              <select name="user" id="user">
+                  {% for n in res %}
+                    <option>{{n}}</option>
+                  {% endfor %}
+              </select>
+          </h3>
             <p><input type = "submit" value = "search jobs" /></p>
       </form>
     </center>

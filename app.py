@@ -20,7 +20,7 @@ def index():
         res = session.run(q).data()
     res = [r['p']['name'] for r in res]
     print(res)
-    return render_template('jobs.html',names=res)
+    return render_template('jobs.html',res=res)
 
 @app.route('/recommend')
 def recopage():
@@ -64,6 +64,7 @@ def recommendations():
 @app.route('/search',methods=['GET','POST'])
 def search():
     if request.method == "POST":
+        print(request)
         name = request.form['user']
         with driver.session() as session:
             q = f"MATCH (has_s:Skill)<-[has:HAS_SKILL]-(p:Person{{name:\"{name}\"}})-[:LIVESIN_CITY]" \
@@ -82,7 +83,10 @@ def search():
                 r.pop("match_count")
             print(res)
         return render_template('table.html', res=res, name=name)
-    return render_template('jobs.html')
+    q = "match(p: Person) return p"
+    with driver.session() as session:
+        res = session.run(q).data()
+    return render_template('jobs.html',res=[r['p']['name'] for r in res])
 
 
 if __name__ == '__main__':
